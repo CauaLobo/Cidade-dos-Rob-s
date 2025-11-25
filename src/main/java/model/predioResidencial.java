@@ -25,6 +25,9 @@ public class predioResidencial extends Predio {
         this.Robos.remove(robo);
     }
 
+    public List<Robo> getRobos() {
+        return new ArrayList<>(Robos); // Retorna cópia para evitar modificações externas
+    }
 
     @Override
     public void efeito(City city){

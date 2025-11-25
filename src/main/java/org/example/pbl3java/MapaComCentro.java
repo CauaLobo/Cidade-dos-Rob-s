@@ -24,11 +24,21 @@ public class MapaComCentro extends Application {
     private City cidadeAtual; // Simula o Model que está sendo exibido
     private GridPane mapaCidade;
 
+    /**
+     * Define a cidade a ser exibida no mapa.
+     * @param cidade A cidade a ser exibida
+     */
+    public void setCidade(City cidade) {
+        this.cidadeAtual = cidade;
+    }
+
     @Override
     public void start(Stage primaryStage) {
 
-        // Simulação: Inicia uma nova cidade no Model
-        this.cidadeAtual = new City("RoboCentral");
+        // Se não houver cidade definida, cria uma nova
+        if (this.cidadeAtual == null) {
+            this.cidadeAtual = new City("RoboCentral");
+        }
 
         // Inicializa o GridPane e o ScrollPane
         mapaCidade = new GridPane();
@@ -56,7 +66,7 @@ public class MapaComCentro extends Application {
         scrollPane.setFitToHeight(true);
 
         Scene scene = new Scene(scrollPane, 800, 600);
-        primaryStage.setTitle("Mapa da Cidade dos Robôs - Centro");
+        primaryStage.setTitle("Cidade dos Robôs - " + cidadeAtual.getNome());
         primaryStage.setScene(scene);
         primaryStage.show();
     }

@@ -19,7 +19,8 @@ public class predioComercial extends Predio {
     }
 
     public boolean addRobo(Robo robo){
-        if (robo.getTipo() != TipoDeRobo.TRABALHADOR){
+        // Aceita TRABALHADOR e ENGENHEIRO (engenheiros dão bônus de produção)
+        if (robo.getTipo() != TipoDeRobo.TRABALHADOR && robo.getTipo() != TipoDeRobo.ENGENHEIRO){
             return false;
         }
         if (!this.Robos.contains(robo) && this.Robos.size() < maxRobos){
@@ -33,17 +34,38 @@ public class predioComercial extends Predio {
         this.Robos.remove(robo);
     }
 
+    public List<Robo> getRobos() {
+        return new ArrayList<>(Robos); // Retorna cópia para evitar modificações externas
+    }
+
     @Override
     public void efeito(City city){
+        int qtdEngenheiros = 0;
+        int qtdTrabalhadores = 0;
+        
         if (!Robos.isEmpty()){
             for (Robo robo : Robos){
                 if (robo.getIntegridade() > 30 && robo.getEnergia() > 30) {
-                    city.addDinheiro(taxaDinheiro);
-                    city.addPecas(taxaPecas);
+                    if (robo.getTipo() == TipoDeRobo.ENGENHEIRO) {
+                        qtdEngenheiros++;
+                    } else if (robo.getTipo() == TipoDeRobo.TRABALHADOR) {
+                        qtdTrabalhadores++;
+                        city.addDinheiro(taxaDinheiro);
+                        city.addPecas(taxaPecas);
+                    }
                     robo.trabalho();
                 }
             }
         }
+        
+        // Bônus de engenheiros: +20% de dinheiro e +15% de peças (máximo 1 engenheiro conta)
+        if (qtdEngenheiros > 0) {
+            double bonusDinheiro = taxaDinheiro * qtdTrabalhadores * 0.20;
+            int bonusPecas = (int)(taxaPecas * qtdTrabalhadores * 0.15);
+            city.addDinheiro(bonusDinheiro);
+            city.addPecas(bonusPecas);
+        }
+        
         city.addPecas(15); // valores base caso nenhum Robo opere
         city.addDinheiro(50);
     }

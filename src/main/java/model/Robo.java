@@ -59,6 +59,17 @@ public class Robo {
         this.energia = Math.max(0, this.energia - 40.0);
     }
 
+    public void greve(){
+        this.felicidade = Math.max(0, this.felicidade - 30.0);
+        // Durante a greve, os robôs não trabalham, então não consomem energia
+        // mas ficam insatisfeitos
+    }
+
+    public void descobertaPecasRaras(){
+        this.felicidade = Math.min(100.0, this.felicidade + 15.0);
+        // Os robôs ficam felizes com a descoberta de peças raras
+    }
+
     public void consumoDiario() {
         this.energia = Math.max(0, this.energia - 10);
         this.integridade = Math.max(0, this.integridade - 5.0);
@@ -109,5 +120,29 @@ public class Robo {
 
     public void setIntegridade(double integridade) {
         this.integridade = integridade;
+    }
+
+    public int getPosX() {
+        return posX;
+    }
+
+    public void setPosX(int posX) {
+        this.posX = posX;
+    }
+
+    public int getPosY() {
+        return posY;
+    }
+
+    public void setPosY(int posY) {
+        this.posY = posY;
+    }
+
+    public int getTurnosDesdeAManutencao() {
+        return TurnosDesdeAManutencao;
+    }
+
+    public void setTurnosDesdeAManutencao(int turnosDesdeAManutencao) {
+        TurnosDesdeAManutencao = turnosDesdeAManutencao;
     }
 }

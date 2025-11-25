@@ -52,6 +52,9 @@ public class JogoController {
         eventController.verificarEventos(cidadeAtual, novoTurno);
 
         cidadeAtual.felicidadeMedia();
+        
+        // Aplica bônus de felicidade dos seguranças
+        roboController.aplicarBonusFelicidadeSeguranca(cidadeAtual);
     }
 
 }

@@ -79,4 +79,16 @@ public class Centro extends Predio {
     public void iniciarTreinamento(TipoDeRobo tipo) {
         this.filaDeTreinamento.add(new RoboEmTreinamento(tipo, this.tempoTreinamentoTurnos));
     }
+
+    public double getCustoTreinamentoDinheiro() {
+        return custoTreinamentoDinheiro;
+    }
+
+    public int getCustoTreinamentoPecas() {
+        return custoTreinamentoPecas;
+    }
+
+    public List<RoboEmTreinamento> getFilaDeTreinamento() {
+        return new ArrayList<>(filaDeTreinamento); // Retorna cópia
+    }
 }
