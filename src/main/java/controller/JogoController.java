@@ -11,6 +11,7 @@ public class JogoController {
     private PredioController predioController;
     private RoboController roboController;
     private EventController eventController;
+    private Turno ultimoTurno;
 
     public JogoController(City cidade){
         this.cidadeAtual = cidade;
@@ -55,6 +56,25 @@ public class JogoController {
         
         // Aplica bônus de felicidade dos seguranças
         roboController.aplicarBonusFelicidadeSeguranca(cidadeAtual);
+        
+        // Armazena o último turno para acesso aos eventos
+        this.ultimoTurno = novoTurno;
+    }
+    
+    /**
+     * Retorna o último turno processado.
+     * @return O último turno ou null se nenhum turno foi processado ainda
+     */
+    public Turno getUltimoTurno() {
+        return ultimoTurno;
+    }
+    
+    /**
+     * Retorna a cidade atual.
+     * @return A cidade atual
+     */
+    public City getCidadeAtual() {
+        return cidadeAtual;
     }
 
 }

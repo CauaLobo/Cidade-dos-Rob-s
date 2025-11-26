@@ -42,16 +42,22 @@ public class RoboController {
     }
     
     /**
-     * Realiza manutenção em um robô específico.
+     * Inicia a manutenção em um robô específico.
+     * O robô ficará em manutenção por 2 turnos.
      * @param robo O robô a ser mantido
-     * @return true se a manutenção foi realizada, false caso contrário
+     * @return true se a manutenção foi iniciada, false caso contrário
      */
     public boolean fazerManutencao(Robo robo) {
         if (robo == null) {
             return false;
         }
         
-        robo.manutencao();
+        // Se já está em manutenção, não pode iniciar outra
+        if (robo.isEmManutencao()) {
+            return false;
+        }
+        
+        robo.iniciarManutencao();
         return true;
     }
     

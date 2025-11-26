@@ -77,7 +77,22 @@ public class Centro extends Predio {
 
 
     public void iniciarTreinamento(TipoDeRobo tipo) {
-        this.filaDeTreinamento.add(new RoboEmTreinamento(tipo, this.tempoTreinamentoTurnos));
+        // Tempos diferentes de treinamento por tipo de robô
+        int tempoTreinamento;
+        switch (tipo) {
+            case TRABALHADOR:
+                tempoTreinamento = 2; // Trabalhadores são mais rápidos de treinar
+                break;
+            case ENGENHEIRO:
+                tempoTreinamento = 4; // Engenheiros precisam de mais tempo
+                break;
+            case SEGURANCA:
+                tempoTreinamento = 3; // Seguranças têm tempo médio
+                break;
+            default:
+                tempoTreinamento = this.tempoTreinamentoTurnos; // Usa o padrão
+        }
+        this.filaDeTreinamento.add(new RoboEmTreinamento(tipo, tempoTreinamento));
     }
 
     public double getCustoTreinamentoDinheiro() {

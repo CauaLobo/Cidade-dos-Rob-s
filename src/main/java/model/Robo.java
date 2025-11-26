@@ -11,6 +11,8 @@ public class Robo {
     private int TurnosDesdeAManutencao;
     private int posX;
     private int posY;
+    private boolean emManutencao;
+    private int turnosRestantesManutencao;
 
     public Robo(TipoDeRobo tipo, int x, int y){
         this.id = UUID.randomUUID().toString();
@@ -21,9 +23,14 @@ public class Robo {
         this.TurnosDesdeAManutencao = 0;
         this.posX = x;
         this.posY = y;
+        this.emManutencao = false;
+        this.turnosRestantesManutencao = 0;
     }
 
-    public Robo(){}
+    public Robo(){
+        this.emManutencao = false;
+        this.turnosRestantesManutencao = 0;
+    }
 
     public void trabalho(){
         double consumoBase = 10.0;
@@ -43,10 +50,40 @@ public class Robo {
 
     }
 
+    /**
+     * Inicia a manutenção do robô. O robô ficará em manutenção por 2 turnos.
+     */
+    public void iniciarManutencao(){
+        this.emManutencao = true;
+        this.turnosRestantesManutencao = 2; // 2 turnos de manutenção
+    }
+    
+    /**
+     * Processa um turno de manutenção. Deve ser chamado a cada turno.
+     * Quando a manutenção terminar, restaura integridade e felicidade.
+     */
+    public void processarManutencao(){
+        if (emManutencao && turnosRestantesManutencao > 0) {
+            turnosRestantesManutencao--;
+            
+            // Quando a manutenção terminar
+            if (turnosRestantesManutencao <= 0) {
+                this.integridade = 100.0;
+                this.TurnosDesdeAManutencao = 0;
+                this.felicidade = Math.min(100.0, this.felicidade + 20.0);
+                this.emManutencao = false;
+            }
+        }
+    }
+    
+    /**
+     * Método legado mantido para compatibilidade.
+     * Agora apenas inicia a manutenção.
+     * @deprecated Use iniciarManutencao() e processarManutencao() separadamente
+     */
+    @Deprecated
     public void manutencao(){
-        this.integridade = 100.0;
-        this.TurnosDesdeAManutencao = 0;
-        this.felicidade = Math.min(100.0, this.felicidade + 20.0);
+        iniciarManutencao();
     }
 
     public void dormir(){
@@ -71,6 +108,12 @@ public class Robo {
     }
 
     public void consumoDiario() {
+        // Se está em manutenção, processa a manutenção e não consome recursos
+        if (emManutencao) {
+            processarManutencao();
+            return; // Robôs em manutenção não consomem energia/integridade
+        }
+        
         this.energia = Math.max(0, this.energia - 10);
         this.integridade = Math.max(0, this.integridade - 5.0);
 
@@ -144,5 +187,21 @@ public class Robo {
 
     public void setTurnosDesdeAManutencao(int turnosDesdeAManutencao) {
         TurnosDesdeAManutencao = turnosDesdeAManutencao;
+    }
+
+    public boolean isEmManutencao() {
+        return emManutencao;
+    }
+
+    public void setEmManutencao(boolean emManutencao) {
+        this.emManutencao = emManutencao;
+    }
+
+    public int getTurnosRestantesManutencao() {
+        return turnosRestantesManutencao;
+    }
+
+    public void setTurnosRestantesManutencao(int turnosRestantesManutencao) {
+        this.turnosRestantesManutencao = turnosRestantesManutencao;
     }
 }

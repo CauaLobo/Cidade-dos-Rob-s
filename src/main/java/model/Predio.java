@@ -66,4 +66,20 @@ public abstract class Predio {
     public void setPosY(int posY) {
         this.posY = posY;
     }
+
+    public int getLargura() {
+        return largura;
+    }
+
+    public void setLargura(int largura) {
+        this.largura = largura;
+    }
+
+    public int getAltura() {
+        return altura;
+    }
+
+    public void setAltura(int altura) {
+        this.altura = altura;
+    }
 }
