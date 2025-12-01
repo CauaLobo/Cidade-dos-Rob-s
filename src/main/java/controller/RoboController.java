@@ -84,6 +84,10 @@ public class RoboController {
         } else if (predio instanceof predioResidencial) {
             predioResidencial residencial = (predioResidencial) predio;
             return residencial.addRobo(robo);
+        } else if (predio instanceof PredioDecorativo) {
+            // Prédios decorativos permitem robôs apenas para exploração
+            PredioDecorativo decorativo = (PredioDecorativo) predio;
+            return decorativo.addRobo(robo);
         }
         
         return false; // Tipo de prédio não suportado (ex: Centro)
@@ -112,6 +116,12 @@ public class RoboController {
                 predioResidencial residencial = (predioResidencial) predio;
                 if (residencial.getRobos().contains(robo)) {
                     residencial.removeRobo(robo);
+                    return true;
+                }
+            } else if (predio instanceof PredioDecorativo) {
+                PredioDecorativo decorativo = (PredioDecorativo) predio;
+                if (decorativo.getRobos().contains(robo)) {
+                    decorativo.removeRobo(robo);
                     return true;
                 }
             }
@@ -150,7 +160,7 @@ public class RoboController {
         
         List<Robo> disponiveis = new ArrayList<>(city.getRobos());
         
-        // Remove robôs que estão em prédios
+        // Remove robôs que estão em prédios (incluindo decorativos)
         for (Predio predio : city.getPredios()) {
             if (predio instanceof predioComercial) {
                 predioComercial comercial = (predioComercial) predio;
@@ -158,6 +168,9 @@ public class RoboController {
             } else if (predio instanceof predioResidencial) {
                 predioResidencial residencial = (predioResidencial) predio;
                 disponiveis.removeAll(residencial.getRobos());
+            } else if (predio instanceof PredioDecorativo) {
+                PredioDecorativo decorativo = (PredioDecorativo) predio;
+                disponiveis.removeAll(decorativo.getRobos());
             }
         }
         
@@ -184,6 +197,11 @@ public class RoboController {
             } else if (predio instanceof predioResidencial) {
                 predioResidencial residencial = (predioResidencial) predio;
                 if (residencial.getRobos().contains(robo)) {
+                    return predio;
+                }
+            } else if (predio instanceof PredioDecorativo) {
+                PredioDecorativo decorativo = (PredioDecorativo) predio;
+                if (decorativo.getRobos().contains(robo)) {
                     return predio;
                 }
             }
@@ -241,5 +259,24 @@ public class RoboController {
         double bonus = calcularBonusFelicidadeSeguranca(city);
         double felicidadeAtual = city.getFelicidadeMedia();
         city.setFelicidadeMedia(Math.min(100.0, felicidadeAtual + bonus));
+    }
+    
+    /**
+     * Deleta um robô da cidade.
+     * Remove o robô de qualquer prédio onde esteja e da lista de robôs da cidade.
+     * @param robo O robô a ser deletado
+     * @param city A cidade onde o robô está
+     * @return true se o robô foi deletado com sucesso, false caso contrário
+     */
+    public boolean deletarRobo(Robo robo, City city) {
+        if (robo == null || city == null) {
+            return false;
+        }
+        
+        // Primeiro remove o robô de qualquer prédio onde esteja
+        removerRoboDePredio(robo, city);
+        
+        // Remove o robô da lista de robôs da cidade
+        return city.getRobos().remove(robo);
     }
 }

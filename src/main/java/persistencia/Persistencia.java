@@ -1,7 +1,10 @@
 package persistencia;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,8 +21,14 @@ public class Persistencia {
         /**
          * Instancia unica do ObjectMapper da biblioteca Jackson.
          * E estatica e final para garantir eficiencia e unicidade no processo de serializacao/desserializacao.
+         * Configurado para preservar todos os campos e ignorar propriedades desconhecidas.
          */
-        private static final ObjectMapper objectMapper = new ObjectMapper();
+        private static final ObjectMapper objectMapper = new ObjectMapper()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+                .configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true)
+                .configure(SerializationFeature.INDENT_OUTPUT, false) // Formatação compacta
+                .setSerializationInclusion(JsonInclude.Include.ALWAYS);
 
         /**
          * Serializa uma lista de entidades genericas e as salva em um arquivo JSON.

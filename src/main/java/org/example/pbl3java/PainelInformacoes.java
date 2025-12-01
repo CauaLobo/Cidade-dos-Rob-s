@@ -9,6 +9,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.Stage;
 import model.City;
 import model.TipoDeRobo;
 import model.TipoPredio;
@@ -40,6 +41,8 @@ public class PainelInformacoes extends VBox {
     // Botões de controle
     private Button btnProximoTurno;
     private Button btnSalvarCidade;
+    private Button btnVoltarMenu;
+    private Stage stagePrincipal; // Referência ao Stage principal do jogo
     
     // Área de eventos
     private TextArea areaEventos;
@@ -63,6 +66,14 @@ public class PainelInformacoes extends VBox {
         configurarPainel();
         criarComponentes();
         atualizarInformacoes();
+    }
+    
+    /**
+     * Define o Stage principal do jogo para permitir fechar e voltar ao menu.
+     * @param stage O Stage principal
+     */
+    public void setStagePrincipal(Stage stage) {
+        this.stagePrincipal = stage;
     }
     
     private void configurarPainel() {
@@ -185,10 +196,10 @@ public class PainelInformacoes extends VBox {
         secaoEventos.getChildren().add(tituloSecao);
         
         areaEventos = new TextArea();
-        areaEventos.setPrefRowCount(3);
+        areaEventos.setPrefRowCount(4);
         areaEventos.setEditable(false);
         areaEventos.setWrapText(true);
-        areaEventos.setStyle("-fx-background-color: #2c3e50; -fx-text-fill: white; -fx-font-size: 10px;");
+        areaEventos.setStyle("-fx-background-color: #1a252f; -fx-text-fill: #2ecc71; -fx-font-size: 11px; -fx-font-weight: bold;");
         secaoEventos.getChildren().add(areaEventos);
         
         container.getChildren().add(secaoEventos);
@@ -296,7 +307,7 @@ public class PainelInformacoes extends VBox {
         Label instrucao = new Label("Clique no mapa para construir");
         instrucao.setFont(Font.font("Arial", 9));
         instrucao.setTextFill(Color.LIGHTGRAY);
-        instrucao.setPadding(new Insets(3, 0, 0, 0));
+        instrucao.setPadding(new Insets(5, 0, 0, 0));
         secaoConstrucao.getChildren().add(instrucao);
         
         // Inicializa a seleção visual
@@ -309,56 +320,26 @@ public class PainelInformacoes extends VBox {
      * Atualiza a aparência visual dos botões de seleção de tipo de prédio.
      */
     private void atualizarSelecaoTipoPredio() {
+        // Reseta todos os botões funcionais
+        String estiloNaoSelecionado = "-fx-font-size: 9px; -fx-font-weight: bold; -fx-background-color: #34495e; -fx-text-fill: white; -fx-background-radius: 5px; -fx-border-color: #7f8c8d; -fx-border-width: 2px; -fx-border-radius: 5px;";
+        
         if (tipoPredioSelecionado == TipoPredio.COMERCIAL) {
-            // Destaca o botão comercial
-            btnSelecionarComercial.setStyle(
-                "-fx-font-size: 11px; " +
-                "-fx-font-weight: bold; " +
-                "-fx-background-color: #27ae60; " +
-                "-fx-text-fill: white; " +
-                "-fx-background-radius: 5px; " +
-                "-fx-border-color: #2ecc71; " +
-                "-fx-border-width: 3px; " +
-                "-fx-border-radius: 5px;"
-            );
-            btnSelecionarResidencial.setStyle(
-                "-fx-font-size: 11px; " +
-                "-fx-font-weight: bold; " +
-                "-fx-background-color: #34495e; " +
-                "-fx-text-fill: white; " +
-                "-fx-background-radius: 5px; " +
-                "-fx-border-color: #7f8c8d; " +
-                "-fx-border-width: 2px; " +
-                "-fx-border-radius: 5px;"
-            );
+            btnSelecionarComercial.setStyle("-fx-font-size: 9px; -fx-font-weight: bold; -fx-background-color: #27ae60; -fx-text-fill: white; -fx-background-radius: 5px; -fx-border-color: #2ecc71; -fx-border-width: 3px; -fx-border-radius: 5px;");
+            btnSelecionarResidencial.setStyle(estiloNaoSelecionado);
             labelTipoSelecionado.setText("Tipo: 🏢 COMERCIAL");
             labelTipoSelecionado.setTextFill(Color.LIGHTGREEN);
-        } else {
-            // Destaca o botão residencial
-            btnSelecionarResidencial.setStyle(
-                "-fx-font-size: 11px; " +
-                "-fx-font-weight: bold; " +
-                "-fx-background-color: #3498db; " +
-                "-fx-text-fill: white; " +
-                "-fx-background-radius: 5px; " +
-                "-fx-border-color: #5dade2; " +
-                "-fx-border-width: 3px; " +
-                "-fx-border-radius: 5px;"
-            );
-            btnSelecionarComercial.setStyle(
-                "-fx-font-size: 11px; " +
-                "-fx-font-weight: bold; " +
-                "-fx-background-color: #34495e; " +
-                "-fx-text-fill: white; " +
-                "-fx-background-radius: 5px; " +
-                "-fx-border-color: #7f8c8d; " +
-                "-fx-border-width: 2px; " +
-                "-fx-border-radius: 5px;"
-            );
+        } else if (tipoPredioSelecionado == TipoPredio.RESIDENCIAL) {
+            btnSelecionarResidencial.setStyle("-fx-font-size: 9px; -fx-font-weight: bold; -fx-background-color: #3498db; -fx-text-fill: white; -fx-background-radius: 5px; -fx-border-color: #5dade2; -fx-border-width: 3px; -fx-border-radius: 5px;");
+            btnSelecionarComercial.setStyle(estiloNaoSelecionado);
             labelTipoSelecionado.setText("Tipo: 🏠 RESIDENCIAL");
             labelTipoSelecionado.setTextFill(Color.LIGHTBLUE);
+        } else {
+            // Nenhum tipo selecionado ou tipo não suportado - volta para COMERCIAL
+            tipoPredioSelecionado = TipoPredio.COMERCIAL;
+            atualizarSelecaoTipoPredio();
         }
     }
+    
     
     private void criarSecaoGerenciamentoRobos(VBox container) {
         VBox secaoGerenciamento = new VBox(4);
@@ -399,6 +380,14 @@ public class PainelInformacoes extends VBox {
         btnSalvarCidade.setStyle("-fx-font-size: 11px; -fx-background-color: #3498db; -fx-text-fill: white;");
         btnSalvarCidade.setOnAction(e -> salvarCidade());
         secaoBotoes.getChildren().add(btnSalvarCidade);
+        
+        // Botão Voltar ao Menu
+        btnVoltarMenu = new Button("🏠 Voltar ao Menu");
+        btnVoltarMenu.setPrefWidth(Double.MAX_VALUE);
+        btnVoltarMenu.setPrefHeight(30);
+        btnVoltarMenu.setStyle("-fx-font-size: 11px; -fx-background-color: #e74c3c; -fx-text-fill: white;");
+        btnVoltarMenu.setOnAction(e -> voltarAoMenu());
+        secaoBotoes.getChildren().add(btnVoltarMenu);
         
         container.getChildren().add(secaoBotoes);
     }
@@ -523,6 +512,10 @@ public class PainelInformacoes extends VBox {
      */
     public void setMapaComCentro(MapaComCentro mapaComCentro) {
         this.mapaComCentro = mapaComCentro;
+        // Passa a referência do mapa para a interface de gerenciamento
+        if (interfaceGerenciamentoRobos != null) {
+            interfaceGerenciamentoRobos.setMapaComCentro(mapaComCentro);
+        }
     }
     
     /**
@@ -571,9 +564,8 @@ public class PainelInformacoes extends VBox {
                     for (String evento : eventos) {
                         adicionarEvento(evento);
                     }
-                } else {
-                    adicionarEvento("Turno avançado sem eventos especiais.");
                 }
+                // Não mostra mensagem se não houver eventos - é normal não ter eventos em alguns turnos
             }
         }
     }
@@ -597,6 +589,68 @@ public class PainelInformacoes extends VBox {
                 erro.setContentText("Não foi possível salvar a cidade: " + e.getMessage());
                 erro.showAndWait();
             }
+        }
+    }
+    
+    /**
+     * Volta para o menu principal, perguntando se deseja salvar antes.
+     */
+    private void voltarAoMenu() {
+        if (stagePrincipal == null) {
+            return;
+        }
+        
+        // Pergunta se deseja salvar antes de sair
+        Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmacao.setTitle("Voltar ao Menu");
+        confirmacao.setHeaderText("Voltar ao Menu Principal");
+        confirmacao.setContentText("Deseja salvar a cidade antes de voltar ao menu?");
+        
+        ButtonType btnSalvar = new ButtonType("Salvar e Sair");
+        ButtonType btnSair = new ButtonType("Sair sem Salvar");
+        ButtonType btnCancelar = new ButtonType("Cancelar", ButtonBar.ButtonData.CANCEL_CLOSE);
+        
+        confirmacao.getButtonTypes().setAll(btnSalvar, btnSair, btnCancelar);
+        
+        confirmacao.showAndWait().ifPresent(resultado -> {
+            if (resultado == btnSalvar) {
+                // Salva e depois fecha
+                try {
+                    if (jogoController != null && cidade != null) {
+                        jogoController.salvarCity();
+                    }
+                } catch (IOException e) {
+                    Alert erro = new Alert(Alert.AlertType.ERROR);
+                    erro.setTitle("Erro ao Salvar");
+                    erro.setHeaderText(null);
+                    erro.setContentText("Não foi possível salvar a cidade: " + e.getMessage());
+                    erro.showAndWait();
+                    return; // Se deu erro, não fecha
+                }
+                fecharJogoEAbrirMenu();
+            } else if (resultado == btnSair) {
+                // Fecha sem salvar
+                fecharJogoEAbrirMenu();
+            }
+            // Se cancelar, não faz nada
+        });
+    }
+    
+    /**
+     * Fecha a janela do jogo e abre o menu principal novamente.
+     */
+    private void fecharJogoEAbrirMenu() {
+        if (stagePrincipal != null) {
+            stagePrincipal.close();
+        }
+        
+        // Abre o menu novamente
+        try {
+            MenuInicial menu = new MenuInicial();
+            Stage menuStage = new Stage();
+            menu.start(menuStage);
+        } catch (Exception e) {
+            System.err.println("Erro ao abrir menu: " + e.getMessage());
         }
     }
     

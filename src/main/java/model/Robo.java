@@ -1,8 +1,32 @@
 package model;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.UUID;
 
-public class Robo {
+/**
+ * Classe abstrata que representa um robô na cidade.
+ * Define os atributos e comportamentos básicos de todos os tipos de robôs.
+ * 
+ * <p>Os robôs possuem energia, felicidade e integridade que variam durante o jogo.
+ * Podem trabalhar, entrar em manutenção, dormir e serem afetados por eventos aleatórios.
+ * 
+ * <p>Esta classe é serializada/deserializada usando Jackson com suporte a polimorfismo.
+ * 
+ * @author Sistema Cidade dos Robôs
+ * @version 1.0
+ */
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "tipo"
+)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = Trabalhador.class, name = "TRABALHADOR"),
+    @JsonSubTypes.Type(value = Engenheiro.class, name = "ENGENHEIRO"),
+    @JsonSubTypes.Type(value = Seguranca.class, name = "SEGURANCA")
+})
+public abstract class Robo {
     private String id;
     private TipoDeRobo tipo;
     private double energia;
@@ -14,6 +38,13 @@ public class Robo {
     private boolean emManutencao;
     private int turnosRestantesManutencao;
 
+    /**
+     * Construtor principal para criar um robô.
+     * 
+     * @param tipo O tipo do robô (TRABALHADOR, ENGENHEIRO ou SEGURANCA)
+     * @param x Posição X inicial do robô no mapa
+     * @param y Posição Y inicial do robô no mapa
+     */
     public Robo(TipoDeRobo tipo, int x, int y){
         this.id = UUID.randomUUID().toString();
         this.tipo = tipo;
@@ -27,11 +58,27 @@ public class Robo {
         this.turnosRestantesManutencao = 0;
     }
 
+    /**
+     * Construtor padrão para deserialização JSON (Jackson).
+     * Inicializa todos os campos com valores padrão.
+     */
     public Robo(){
+        this.id = UUID.randomUUID().toString();
+        this.energia = 100.0;
+        this.felicidade = 100.0;
+        this.integridade = 100.0;
+        this.TurnosDesdeAManutencao = 0;
+        this.posX = 0;
+        this.posY = 0;
         this.emManutencao = false;
         this.turnosRestantesManutencao = 0;
     }
 
+    /**
+     * Simula o trabalho do robô, consumindo energia e integridade.
+     * Engenheiros consomem 50% mais energia que outros tipos.
+     * Se energia ou integridade ficarem baixas (≤40), a felicidade diminui.
+     */
     public void trabalho(){
         double consumoBase = 10.0;
 
@@ -86,27 +133,48 @@ public class Robo {
         iniciarManutencao();
     }
 
+    /**
+     * Simula o descanso do robô, recuperando energia e felicidade.
+     * Aumenta felicidade em 20% e energia em 40% (limitado a 100%).
+     */
     public void dormir(){
         this.felicidade = Math.min(100.0, this.felicidade + 20.0);
         this.energia = Math.min(100.0, this.energia + 40.0);
     }
 
+    /**
+     * Aplica os efeitos de um apagão de energia no robô.
+     * Reduz energia e felicidade em 40 pontos.
+     */
     public void apagao(){
         this.felicidade = Math.max(0, this.felicidade - 40.0);
         this.energia = Math.max(0, this.energia - 40.0);
     }
 
+    /**
+     * Aplica os efeitos de uma greve no robô.
+     * Reduz felicidade em 30 pontos. Durante a greve, os robôs não trabalham.
+     */
     public void greve(){
         this.felicidade = Math.max(0, this.felicidade - 30.0);
         // Durante a greve, os robôs não trabalham, então não consomem energia
         // mas ficam insatisfeitos
     }
 
+    /**
+     * Aplica os efeitos de uma descoberta de peças raras.
+     * Aumenta felicidade em 15 pontos (limitado a 100%).
+     */
     public void descobertaPecasRaras(){
         this.felicidade = Math.min(100.0, this.felicidade + 15.0);
         // Os robôs ficam felizes com a descoberta de peças raras
     }
 
+    /**
+     * Processa o consumo diário de recursos do robô.
+     * Consome energia e integridade a cada turno.
+     * Se o robô está em manutenção, processa a manutenção ao invés de consumir recursos.
+     */
     public void consumoDiario() {
         // Se está em manutenção, processa a manutenção e não consome recursos
         if (emManutencao) {

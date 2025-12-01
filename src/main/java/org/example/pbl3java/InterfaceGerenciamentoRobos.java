@@ -18,6 +18,7 @@ import model.TipoDeRobo;
 import model.TipoPredio;
 import model.predioComercial;
 import model.predioResidencial;
+import model.PredioDecorativo;
 
 /**
  * Interface dedicada para o gerenciamento de robôs.
@@ -28,6 +29,7 @@ public class InterfaceGerenciamentoRobos {
     private Stage stage;
     private City cidade;
     private RoboController roboController;
+    private MapaComCentro mapaComCentro; // Referência opcional ao mapa para atualização
     
     // Componentes da interface
     private ListView<Robo> listaTodosRobos;
@@ -42,6 +44,7 @@ public class InterfaceGerenciamentoRobos {
     private ComboBox<Predio> comboBoxPredios;
     private Button btnMoverParaPredio;
     private Button btnRemoverDePredio;
+    private Button btnDeletarRobo;
     
     public InterfaceGerenciamentoRobos(City cidade, RoboController roboController) {
         this.cidade = cidade;
@@ -241,7 +244,7 @@ public class InterfaceGerenciamentoRobos {
         
         comboBoxPredios = new ComboBox<>();
         comboBoxPredios.setPrefWidth(Double.MAX_VALUE);
-        comboBoxPredios.setStyle("-fx-background-color: #2c3e50; -fx-text-fill: white;");
+        comboBoxPredios.setStyle("-fx-background-color: #ecf0f1; -fx-text-fill: #2c3e50; -fx-font-size: 12px;");
         atualizarListaPredios();
         secaoAcoes.getChildren().add(comboBoxPredios);
         
@@ -261,6 +264,18 @@ public class InterfaceGerenciamentoRobos {
         btnRemoverDePredio.setStyle("-fx-font-size: 12px; -fx-background-color: #e74c3c; -fx-text-fill: white;");
         btnRemoverDePredio.setOnAction(e -> removerDePredio());
         secaoAcoes.getChildren().add(btnRemoverDePredio);
+        
+        // Separador
+        Separator separador3 = new Separator();
+        secaoAcoes.getChildren().add(separador3);
+        
+        // Deletar robô
+        btnDeletarRobo = new Button("🗑️ Deletar Robô");
+        btnDeletarRobo.setPrefWidth(Double.MAX_VALUE);
+        btnDeletarRobo.setPrefHeight(40);
+        btnDeletarRobo.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-color: #8b0000; -fx-text-fill: white;");
+        btnDeletarRobo.setOnAction(e -> deletarRobo());
+        secaoAcoes.getChildren().add(btnDeletarRobo);
         
         painel.getChildren().add(secaoAcoes);
     }
@@ -320,7 +335,8 @@ public class InterfaceGerenciamentoRobos {
             comboBoxPredios.getItems().clear();
             
             for (Predio predio : cidade.getPredios()) {
-                if (predio.getTipo() == TipoPredio.COMERCIAL || predio.getTipo() == TipoPredio.RESIDENCIAL) {
+                // Inclui prédios funcionais e decorativos (exceto Centro)
+                if (predio.getTipo() != TipoPredio.CENTRO) {
                     comboBoxPredios.getItems().add(predio);
                 }
             }
@@ -332,17 +348,14 @@ public class InterfaceGerenciamentoRobos {
                     super.updateItem(predio, empty);
                     if (empty || predio == null) {
                         setText(null);
+                        setStyle("");
                     } else {
-                        String tipo = predio.getTipo() == TipoPredio.COMERCIAL ? "Comercial" : "Residencial";
-                        int qtdRobos = 0;
-                        if (predio instanceof predioComercial) {
-                            qtdRobos = ((predioComercial) predio).getRobos().size();
-                        } else if (predio instanceof predioResidencial) {
-                            qtdRobos = ((predioResidencial) predio).getRobos().size();
-                        }
+                        String tipo = obterNomeTipoPredio(predio);
+                        int qtdRobos = obterQuantidadeRobos(predio);
+                        int maxRobos = obterMaxRobos(predio);
                         setText(String.format("%s (%d/%d robôs) - Pos: (%d, %d)", 
-                            tipo, qtdRobos, 5, predio.getPosX(), predio.getPosY()));
-                        setStyle("-fx-text-fill: white;");
+                            tipo, qtdRobos, maxRobos, predio.getPosX(), predio.getPosY()));
+                        setStyle("-fx-text-fill: #2c3e50; -fx-background-color: #ecf0f1; -fx-font-size: 12px;");
                     }
                 }
             });
@@ -353,9 +366,11 @@ public class InterfaceGerenciamentoRobos {
                     super.updateItem(predio, empty);
                     if (empty || predio == null) {
                         setText("Selecione um prédio");
+                        setStyle("-fx-text-fill: #7f8c8d; -fx-font-size: 12px;");
                     } else {
                         String tipo = predio.getTipo() == TipoPredio.COMERCIAL ? "Comercial" : "Residencial";
                         setText(tipo + " - Pos: (" + predio.getPosX() + ", " + predio.getPosY() + ")");
+                        setStyle("-fx-text-fill: #2c3e50; -fx-font-size: 12px;");
                     }
                 }
             });
@@ -407,7 +422,7 @@ public class InterfaceGerenciamentoRobos {
         // Verifica se o robô está em algum prédio
         Predio predioDoRobo = roboController.encontrarPredioDoRobo(robo, cidade);
         if (predioDoRobo != null) {
-            String tipoPredio = predioDoRobo.getTipo() == TipoPredio.COMERCIAL ? "Comercial" : "Residencial";
+            String tipoPredio = obterNomeTipoPredio(predioDoRobo);
             labelLocalizacao.setText(String.format("Prédio %s (%d, %d)", tipoPredio, predioDoRobo.getPosX(), predioDoRobo.getPosY()));
             btnMoverParaPredio.setDisable(false);
             btnRemoverDePredio.setDisable(false);
@@ -489,7 +504,14 @@ public class InterfaceGerenciamentoRobos {
             Alert erro = new Alert(Alert.AlertType.ERROR);
             erro.setTitle("Erro");
             erro.setHeaderText(null);
-            erro.setContentText("Não foi possível mover o robô!\nVerifique se o prédio não está cheio (máx 5 robôs).");
+            String mensagem = "Não foi possível mover o robô!\n";
+            if (predioSelecionado instanceof PredioDecorativo) {
+                int max = obterMaxRobos(predioSelecionado);
+                mensagem += "Verifique se o prédio não está cheio (máx " + max + " robôs).";
+            } else {
+                mensagem += "Verifique se o prédio não está cheio (máx 5 robôs).";
+            }
+            erro.setContentText(mensagem);
             erro.showAndWait();
         }
     }
@@ -550,12 +572,133 @@ public class InterfaceGerenciamentoRobos {
     }
     
     /**
+     * Deleta o robô selecionado após confirmação.
+     */
+    private void deletarRobo() {
+        Robo roboSelecionado = listaTodosRobos.getSelectionModel().getSelectedItem();
+        
+        if (roboSelecionado == null) {
+            Alert aviso = new Alert(Alert.AlertType.WARNING);
+            aviso.setTitle("Aviso");
+            aviso.setHeaderText(null);
+            aviso.setContentText("Selecione um robô da lista!");
+            aviso.showAndWait();
+            return;
+        }
+        
+        // Confirmação antes de deletar
+        Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmacao.setTitle("Confirmar Exclusão");
+        confirmacao.setHeaderText("Deletar Robô");
+        confirmacao.setContentText(String.format(
+            "Tem certeza que deseja deletar o robô %s?\n\n" +
+            "Esta ação não pode ser desfeita.\n" +
+            "O robô será removido permanentemente da cidade.",
+            roboSelecionado.getTipo()
+        ));
+        
+        confirmacao.showAndWait().ifPresent(resultado -> {
+            if (resultado == ButtonType.OK) {
+                boolean sucesso = roboController.deletarRobo(roboSelecionado, cidade);
+                
+                if (sucesso) {
+                    // Limpa a seleção e atualiza a lista
+                    listaTodosRobos.getSelectionModel().clearSelection();
+                    atualizarListaRobos();
+                    atualizarListaPredios();
+                    atualizarInformacoesRobo(null); // Limpa as informações exibidas
+                    
+                    // Atualiza o mapa se disponível
+                    if (mapaComCentro != null) {
+                        mapaComCentro.atualizarMapa();
+                    }
+                    
+                    Alert sucessoAlert = new Alert(Alert.AlertType.INFORMATION);
+                    sucessoAlert.setTitle("Robô Deletado");
+                    sucessoAlert.setHeaderText(null);
+                    sucessoAlert.setContentText("Robô deletado com sucesso da cidade!");
+                    sucessoAlert.showAndWait();
+                } else {
+                    Alert erro = new Alert(Alert.AlertType.ERROR);
+                    erro.setTitle("Erro");
+                    erro.setHeaderText(null);
+                    erro.setContentText("Não foi possível deletar o robô!");
+                    erro.showAndWait();
+                }
+            }
+        });
+    }
+    
+    /**
+     * Define a referência ao mapa para permitir atualizações.
+     * @param mapaComCentro A referência ao mapa
+     */
+    public void setMapaComCentro(MapaComCentro mapaComCentro) {
+        this.mapaComCentro = mapaComCentro;
+    }
+    
+    /**
      * Atualiza a cidade (útil quando a cidade é carregada ou modificada).
      */
     public void atualizarCidade(City novaCidade) {
         this.cidade = novaCidade;
         atualizarListaRobos();
         atualizarListaPredios();
+    }
+    
+    /**
+     * Retorna o nome do tipo de prédio para exibição.
+     */
+    private String obterNomeTipoPredio(Predio predio) {
+        switch (predio.getTipo()) {
+            case COMERCIAL:
+                return "Comercial";
+            case RESIDENCIAL:
+                return "Residencial";
+            case MONUMENTO:
+                return "Monumento";
+            case TORRE_COMUNICACAO:
+                return "Torre de Comunicação";
+            case ESTACAO_ENERGIA:
+                return "Estação de Energia";
+            case JARDIM_ZEN:
+                return "Jardim Zen";
+            case OBSERVATORIO:
+                return "Observatório";
+            default:
+                return "Desconhecido";
+        }
+    }
+    
+    /**
+     * Retorna a quantidade de robôs em um prédio.
+     */
+    private int obterQuantidadeRobos(Predio predio) {
+        if (predio instanceof predioComercial) {
+            return ((predioComercial) predio).getRobos().size();
+        } else if (predio instanceof predioResidencial) {
+            return ((predioResidencial) predio).getRobos().size();
+        } else if (predio instanceof PredioDecorativo) {
+            return ((PredioDecorativo) predio).getRobos().size();
+        }
+        return 0;
+    }
+    
+    /**
+     * Retorna o máximo de robôs permitidos em um prédio.
+     */
+    private int obterMaxRobos(Predio predio) {
+        if (predio instanceof predioComercial || predio instanceof predioResidencial) {
+            return 5;
+        } else if (predio instanceof PredioDecorativo) {
+            TipoPredio tipo = predio.getTipo();
+            if (tipo == TipoPredio.MONUMENTO || tipo == TipoPredio.JARDIM_ZEN) {
+                return 5;
+            } else {
+                return 3;
+            }
+        }
+        return 0;
     }
 }
 
